@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: bridge
+
+grpc:
+  server:
+    port: 9090
