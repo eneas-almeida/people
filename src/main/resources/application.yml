@@ -8,4 +8,4 @@ grpc:
 
 client:
   typicode:
-    base-url: ${TYPICODE_BASE_URL:https://jsonplaceholder.typicode.com}
+    base-url: https://jsonplaceholder.typicode.com
