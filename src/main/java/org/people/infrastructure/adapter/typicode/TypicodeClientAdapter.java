@@ -2,23 +2,23 @@ package org.people.infrastructure.adapter.typicode;
 
 import org.people.domain.client.UserClient;
 import org.people.domain.entity.User;
-import org.springframework.beans.factory.annotation.Value;
+import org.people.infrastructure.properties.TypicodeClientProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
-public class TypicodeUserClientAdapter implements UserClient {
+public class TypicodeClientAdapter implements UserClient {
 	private final WebClient webClient;
 	private final UserMapper userMapper;
 
-	@Value("${client.typicode.base-url}")
-	private String baseUrl;
-
-	public TypicodeUserClientAdapter(WebClient.Builder webClientBuilder, UserMapper userMapper) {
+	public TypicodeClientAdapter(
+			WebClient.Builder webClientBuilder,
+			UserMapper userMapper,
+			TypicodeClientProperties properties) {
 		this.webClient = webClientBuilder
-				.baseUrl(this.baseUrl)
+				.baseUrl(properties.getBaseUrl())
 				.build();
 		this.userMapper = userMapper;
 	}
@@ -35,11 +35,15 @@ public class TypicodeUserClientAdapter implements UserClient {
 
 	@Override
 	public Flux<User> listAll() {
-		return webClient
-				.get()
-				.uri("/users")
-				.retrieve()
-				.bodyToFlux(UserResponse.class)
-				.map(userMapper::toUser);
+		try {
+			return webClient
+					.get()
+					.uri("/users")
+					.retrieve()
+					.bodyToFlux(UserResponse.class)
+					.map(userMapper::toUser);
+		} catch (Exception e) {
+			return Flux.error(new RuntimeException("Failed to fetch users", e));
+		}
 	}
 }

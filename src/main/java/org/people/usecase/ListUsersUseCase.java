@@ -12,6 +12,12 @@ public class ListUsersUseCase {
 	}
 
 	public Flux<User> execute() {
-		return userClient.listAll();
+		return userClient.listAll().flatMap(users -> {
+			if (users != null) {
+				return Flux.just(users);
+			} else {
+				return Flux.empty();
+			}
+		});
 	}
 }
