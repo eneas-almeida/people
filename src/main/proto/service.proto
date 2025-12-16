@@ -7,14 +7,22 @@ package grpcservice;
 
 service UserService {
   rpc GetUser (UserRequest) returns (UserResponse);
+  rpc ListUsers (ListUsersRequest) returns (ListUsersResponse);
 }
 
 message UserRequest {
   int32 id = 1;
 }
 
+message ListUsersRequest {
+}
+
 message UserResponse {
   int32 id = 1;
   string name = 2;
   string email = 3;
+}
+
+message ListUsersResponse {
+  repeated UserResponse users = 1;
 }

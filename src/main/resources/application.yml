@@ -5,3 +5,7 @@ spring:
 grpc:
   server:
     port: 9090
+
+client:
+  typicode:
+    base-url: ${TYPICODE_BASE_URL:https://jsonplaceholder.typicode.com}
