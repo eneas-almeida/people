@@ -1,6 +1,6 @@
-package org.bridge.domain.client;
+package org.people.domain.client;
 
-import org.bridge.domain.entity.User;
+import org.people.domain.entity.User;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

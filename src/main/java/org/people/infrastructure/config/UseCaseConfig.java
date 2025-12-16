@@ -1,8 +1,8 @@
-package org.bridge.infrastructure.config;
+package org.people.infrastructure.config;
 
-import org.bridge.domain.client.UserClient;
-import org.bridge.usecase.GetUserUseCase;
-import org.bridge.usecase.ListUsersUseCase;
+import org.people.domain.client.UserClient;
+import org.people.usecase.GetUserUseCase;
+import org.people.usecase.ListUsersUseCase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

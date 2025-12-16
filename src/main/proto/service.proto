@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option java_package = "com.bridge.grpc";
+option java_package = "com.people.grpc";
 option java_outer_classname = "ServiceProto";
 
 package grpcservice;

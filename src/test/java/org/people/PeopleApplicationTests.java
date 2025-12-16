@@ -1,10 +1,10 @@
-package org.bridge;
+package org.people;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class BridgeApplicationTests {
+class PeopleApplicationTests {
 
     @Test
     void contextLoads() {

@@ -1,6 +1,6 @@
 spring:
   application:
-    name: bridge
+    name: people
 
 grpc:
   server:

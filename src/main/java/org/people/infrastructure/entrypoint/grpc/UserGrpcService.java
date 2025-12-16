@@ -1,12 +1,12 @@
-package org.bridge.infrastructure.entrypoint.grpc;
+package org.people.infrastructure.entrypoint.grpc;
 
-import com.bridge.grpc.ServiceProto;
-import com.bridge.grpc.UserServiceGrpc;
+import com.people.grpc.ServiceProto;
+import com.people.grpc.UserServiceGrpc;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
-import org.bridge.usecase.GetUserUseCase;
-import org.bridge.usecase.ListUsersUseCase;
+import org.people.usecase.GetUserUseCase;
+import org.people.usecase.ListUsersUseCase;
 
 @GrpcService
 public class UserGrpcService extends UserServiceGrpc.UserServiceImplBase {

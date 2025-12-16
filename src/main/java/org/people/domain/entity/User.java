@@ -1,4 +1,4 @@
-package org.bridge.domain.entity;
+package org.people.domain.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
