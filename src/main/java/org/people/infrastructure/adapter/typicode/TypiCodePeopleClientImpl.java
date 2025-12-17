@@ -2,6 +2,8 @@ package org.people.infrastructure.adapter.typicode;
 
 import org.people.domain.client.PeopleClient;
 import org.people.domain.entity.People;
+import org.people.domain.exception.PeopleNotFoundException;
+import org.people.infrastructure.exception.ExternalServiceException;
 import org.people.infrastructure.logging.LogContext;
 import org.people.infrastructure.logging.Logger;
 import org.people.infrastructure.logging.RequestContext;
@@ -45,8 +47,23 @@ public class TypiCodePeopleClientImpl implements PeopleClient {
 				.onStatus(status -> status.is4xxClientError(), response -> handleClientError(id, response))
 				.onStatus(status -> status.is5xxServerError(), response -> handleServerError(id, response))
 				.bodyToMono(PeopleResponse.class)
+				.switchIfEmpty(Mono.defer(() -> {
+					logger.warn("Empty response from external API for people id: {}", id);
+					return Mono.error(new PeopleNotFoundException(id));
+				}))
 				.map(response -> {
+					if (response == null || response.id() == null) {
+						logger.warn("Invalid or null response from external API for people id: {}", id);
+						throw new PeopleNotFoundException(id);
+					}
+
 					People people = peopleMapper.toPeople(response);
+
+					if (people == null) {
+						logger.warn("Failed to map response to People entity for id: {}", id);
+						throw new PeopleNotFoundException(id);
+					}
+
 					logger.info("People fetched successfully from external API", Map.of(
 							"people_id", String.valueOf(id),
 							"people_name", people.getName(),
@@ -118,7 +135,7 @@ public class TypiCodePeopleClientImpl implements PeopleClient {
 					String errorMsg = String.format("Client error fetching people - id: %d, status: %s, body: %s",
 							id, response.statusCode(), body);
 					logger.error(errorMsg);
-					return Mono.error(new PeopleClientException(errorMsg, response.statusCode().value()));
+					return Mono.error(new ExternalServiceException(errorMsg, "TypiCode API", response.statusCode().value()));
 				});
 	}
 
@@ -129,7 +146,7 @@ public class TypiCodePeopleClientImpl implements PeopleClient {
 					String errorMsg = String.format("Server error fetching people - id: %d, status: %s, body: %s",
 							id, response.statusCode(), body);
 					logger.error(errorMsg);
-					return Mono.error(new PeopleServerException(errorMsg, response.statusCode().value()));
+					return Mono.error(new ExternalServiceException(errorMsg, "TypiCode API", response.statusCode().value()));
 				});
 	}
 
@@ -140,7 +157,7 @@ public class TypiCodePeopleClientImpl implements PeopleClient {
 					String errorMsg = String.format("Client error fetching people list - status: %s, body: %s",
 							response.statusCode(), body);
 					logger.error(errorMsg);
-					return Mono.error(new PeopleClientException(errorMsg, response.statusCode().value()));
+					return Mono.error(new ExternalServiceException(errorMsg, "TypiCode API", response.statusCode().value()));
 				});
 	}
 
@@ -151,45 +168,19 @@ public class TypiCodePeopleClientImpl implements PeopleClient {
 					String errorMsg = String.format("Server error fetching people list - status: %s, body: %s",
 							response.statusCode(), body);
 					logger.error(errorMsg);
-					return Mono.error(new PeopleServerException(errorMsg, response.statusCode().value()));
+					return Mono.error(new ExternalServiceException(errorMsg, "TypiCode API", response.statusCode().value()));
 				});
 	}
 
 	private boolean isRetryableException(Throwable throwable) {
-		return throwable instanceof PeopleServerException ||
+		// Não fazer retry para PeopleNotFoundException (404 - recurso não existe)
+		if (throwable instanceof PeopleNotFoundException) {
+			return false;
+		}
+
+		// Retry apenas para erros de servidor (5xx)
+		return throwable instanceof ExternalServiceException ||
 				(throwable instanceof WebClientResponseException &&
 						((WebClientResponseException) throwable).getStatusCode().is5xxServerError());
-	}
-
-	public static class PeopleNotFoundException extends RuntimeException {
-		public PeopleNotFoundException(String message) {
-			super(message);
-		}
-	}
-
-	public static class PeopleClientException extends RuntimeException {
-		private final int statusCode;
-
-		public PeopleClientException(String message, int statusCode) {
-			super(message);
-			this.statusCode = statusCode;
-		}
-
-		public int getStatusCode() {
-			return statusCode;
-		}
-	}
-
-	public static class PeopleServerException extends RuntimeException {
-		private final int statusCode;
-
-		public PeopleServerException(String message, int statusCode) {
-			super(message);
-			this.statusCode = statusCode;
-		}
-
-		public int getStatusCode() {
-			return statusCode;
-		}
 	}
 }
