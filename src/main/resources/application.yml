@@ -1,6 +1,8 @@
 spring:
   application:
     name: people
+  profiles:
+    active: ${SPRING_PROFILE:local}
 
 grpc:
   server:
@@ -9,3 +11,12 @@ grpc:
 client:
   typicode:
     base-url: https://jsonplaceholder.typicode.com
+
+logging:
+  level:
+    root: INFO
+    org.people: DEBUG
+    io.grpc: INFO
+    net.devh: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
