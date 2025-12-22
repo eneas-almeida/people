@@ -3,8 +3,8 @@ package org.people.infrastructure.config;
 import org.people.domain.client.PeopleClient;
 import org.people.domain.repository.PeopleRepository;
 import org.people.infrastructure.repository.PeopleRepositoryImpl;
-import org.people.usecase.GetPeopleUseCase;
-import org.people.usecase.ListPeopleUseCase;
+import org.people.usecase.GetPeopleUseCaseImpl;
+import org.people.usecase.ListPeopleUseCaseImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,12 +17,12 @@ public class UseCaseConfig {
 	}
 
 	@Bean
-	public GetPeopleUseCase getPeopleUseCase(PeopleRepository peopleRepository) {
-		return new GetPeopleUseCase(peopleRepository);
+	public GetPeopleUseCaseImpl getPeopleUseCase(PeopleRepository peopleRepository) {
+		return new GetPeopleUseCaseImpl(peopleRepository);
 	}
 
 	@Bean
-	public ListPeopleUseCase listPeopleUseCase(PeopleRepository peopleRepository) {
-		return new ListPeopleUseCase(peopleRepository);
+	public ListPeopleUseCaseImpl listPeopleUseCase(PeopleRepository peopleRepository) {
+		return new ListPeopleUseCaseImpl(peopleRepository);
 	}
 }

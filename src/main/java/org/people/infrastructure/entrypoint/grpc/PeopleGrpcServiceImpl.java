@@ -6,16 +6,16 @@ import com.people.grpc.ServiceProto.ListPeopleResponseGrpc;
 import com.people.grpc.ServiceProto.PeopleRequestGrpc;
 import com.people.grpc.ServiceProto.PeopleResponseGrpc;
 import net.devh.boot.grpc.server.service.GrpcService;
-import org.people.usecase.GetPeopleUseCase;
-import org.people.usecase.ListPeopleUseCase;
+import org.people.usecase.GetPeopleUseCaseImpl;
+import org.people.usecase.ListPeopleUseCaseImpl;
 import reactor.core.publisher.Mono;
 
 @GrpcService
-public class PeopleGrpcService extends ReactorPeopleServiceGrpc.PeopleServiceImplBase {
-	private final GetPeopleUseCase getPeopleUseCase;
-	private final ListPeopleUseCase listPeopleUseCase;
+public class PeopleGrpcServiceImpl extends ReactorPeopleServiceGrpc.PeopleServiceImplBase {
+	private final GetPeopleUseCaseImpl getPeopleUseCase;
+	private final ListPeopleUseCaseImpl listPeopleUseCase;
 
-	public PeopleGrpcService(GetPeopleUseCase getPeopleUseCase, ListPeopleUseCase listPeopleUseCase) {
+	public PeopleGrpcServiceImpl(GetPeopleUseCaseImpl getPeopleUseCase, ListPeopleUseCaseImpl listPeopleUseCase) {
 		this.getPeopleUseCase = getPeopleUseCase;
 		this.listPeopleUseCase = listPeopleUseCase;
 	}

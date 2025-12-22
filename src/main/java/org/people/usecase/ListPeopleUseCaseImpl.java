@@ -4,10 +4,10 @@ import org.people.domain.entity.People;
 import org.people.domain.repository.PeopleRepository;
 import reactor.core.publisher.Flux;
 
-public class ListPeopleUseCase {
+public class ListPeopleUseCaseImpl {
 	private final PeopleRepository peopleRepository;
 
-	public ListPeopleUseCase(PeopleRepository peopleRepository) {
+	public ListPeopleUseCaseImpl(PeopleRepository peopleRepository) {
 		this.peopleRepository = peopleRepository;
 	}
 

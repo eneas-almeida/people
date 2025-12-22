@@ -9,11 +9,11 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
-public class GetPeopleUseCase {
-	private static final Logger logger = Logger.getLogger(GetPeopleUseCase.class);
+public class GetPeopleUseCaseImpl {
+	private static final Logger logger = Logger.getLogger(GetPeopleUseCaseImpl.class);
 	private final PeopleRepository peopleRepository;
 
-	public GetPeopleUseCase(PeopleRepository peopleRepository) {
+	public GetPeopleUseCaseImpl(PeopleRepository peopleRepository) {
 		this.peopleRepository = peopleRepository;
 	}
 
@@ -22,7 +22,7 @@ public class GetPeopleUseCase {
 		LogContext.add("people_id", String.valueOf(peopleId));
 		LogContext.add("operation", "get_people");
 
-		logger.info("Executing GetPeopleUseCase - peopleId: {}, requestId: {}", peopleId, requestId);
+		logger.info("Executing GetPeopleUseCaseImpl - peopleId: {}, requestId: {}", peopleId, requestId);
 
 		return peopleRepository.findById(peopleId)
 				.doOnSuccess(people -> {
