@@ -1,7 +1,7 @@
 package org.people.usecase;
 
-import org.people.domain.client.PeopleClient;
 import org.people.domain.entity.People;
+import org.people.domain.repository.PeopleRepository;
 import org.people.infrastructure.logging.LogContext;
 import org.people.infrastructure.logging.Logger;
 import org.people.infrastructure.logging.RequestContext;
@@ -11,10 +11,10 @@ import java.util.Map;
 
 public class GetPeopleUseCase {
 	private static final Logger logger = Logger.getLogger(GetPeopleUseCase.class);
-	private final PeopleClient peopleClient;
+	private final PeopleRepository peopleRepository;
 
-	public GetPeopleUseCase(PeopleClient peopleClient) {
-		this.peopleClient = peopleClient;
+	public GetPeopleUseCase(PeopleRepository peopleRepository) {
+		this.peopleRepository = peopleRepository;
 	}
 
 	public Mono<People> execute(Integer peopleId) {
@@ -24,7 +24,7 @@ public class GetPeopleUseCase {
 
 		logger.info("Executing GetPeopleUseCase - peopleId: {}, requestId: {}", peopleId, requestId);
 
-		return peopleClient.findById(peopleId)
+		return peopleRepository.findById(peopleId)
 				.doOnSuccess(people -> {
 					if (people != null) {
 						logger.info("People found successfully", Map.of(
