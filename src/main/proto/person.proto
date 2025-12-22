@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option java_package = "com.people.grpc";
+option java_outer_classname = "ServiceProto";
+
+package grpcservice;
+
+service PeopleService {
+  rpc GetPeople (PeopleRequestGrpc) returns (PeopleResponseGrpc);
+  rpc ListPeople (ListPeopleRequestGrpc) returns (ListPeopleResponseGrpc);
+}
+
+message PeopleRequestGrpc {
+  int32 id = 1;
+}
+
+message ListPeopleRequestGrpc {}
+
+message PeopleResponseGrpc {
+  int32 id = 1;
+  string name = 2;
+  string email = 3;
+}
+
+message ListPeopleResponseGrpc {
+  repeated PeopleResponseGrpc people = 1;
+}
