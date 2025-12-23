@@ -6,8 +6,8 @@ import com.people.grpc.ServiceProto.ListPeopleResponseGrpc;
 import com.people.grpc.ServiceProto.PeopleRequestGrpc;
 import com.people.grpc.ServiceProto.PeopleResponseGrpc;
 import net.devh.boot.grpc.server.service.GrpcService;
-import org.people.usecase.GetPeopleUseCaseImpl;
-import org.people.usecase.ListPeopleUseCaseImpl;
+import org.people.application.usecase.GetPeopleUseCaseImpl;
+import org.people.application.usecase.ListPeopleUseCaseImpl;
 import reactor.core.publisher.Mono;
 
 @GrpcService

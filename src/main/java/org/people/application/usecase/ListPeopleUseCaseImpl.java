@@ -1,6 +1,6 @@
-package org.people.usecase;
+package org.people.application.usecase;
 
-import org.people.domain.entity.People;
+import org.people.application.dto.PeopleResponse;
 import org.people.domain.repository.PeopleRepository;
 import reactor.core.publisher.Flux;
 
@@ -11,7 +11,7 @@ public class ListPeopleUseCaseImpl {
 		this.peopleRepository = peopleRepository;
 	}
 
-	public Flux<People> execute() {
+	public Flux<PeopleResponse> execute() {
 		return peopleRepository.findAll();
 	}
 }

@@ -9,8 +9,11 @@ grpc:
     port: 9090
 
 client:
+  active-datasource: REQRES  # Options: TYPICODE, REQRES
   typicode:
     base-url: https://jsonplaceholder.typicode.com
+  reqres:
+    base-url: https://dummyjson.com
 
 logging:
   level:

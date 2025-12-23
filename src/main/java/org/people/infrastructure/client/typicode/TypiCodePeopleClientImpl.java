@@ -1,13 +1,14 @@
-package org.people.infrastructure.adapter.typicode;
+package org.people.infrastructure.client.typicode;
 
+import org.people.application.dto.PeopleResponse;
 import org.people.domain.client.PeopleClient;
-import org.people.domain.entity.People;
 import org.people.domain.exception.PeopleNotFoundException;
 import org.people.infrastructure.exception.ExternalServiceException;
 import org.people.infrastructure.logging.LogContext;
 import org.people.infrastructure.logging.Logger;
 import org.people.infrastructure.logging.RequestContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -25,14 +26,15 @@ public class TypiCodePeopleClientImpl implements PeopleClient {
 
 	private static final Logger logger = Logger.getLogger(TypiCodePeopleClientImpl.class);
 
-	@Autowired
+    @Autowired
+    @Qualifier("typiCodeWebClient")
 	private WebClient typiCodeWebClient;
 
 	@Autowired
-	private PeopleMapper peopleMapper;
+	private TypiCodePeopleClientMapper typiCodePeopleClientMapper;
 
 	@Override
-	public Mono<People> findById(Integer id) {
+	public Mono<PeopleResponse> findById(Integer id) {
 		String requestId = RequestContext.getRequestId();
 		LogContext.add("people_id", String.valueOf(id));
 		LogContext.add("operation", "findById");
@@ -43,13 +45,13 @@ public class TypiCodePeopleClientImpl implements PeopleClient {
 				.get()
 				.uri("/users/{id}", id)
 				.retrieve()
-				.onStatus(status -> status == HttpStatus.NOT_FOUND, response -> handleNotFound(id, response))
+				.onStatus(HttpStatus.NOT_FOUND::equals, response -> handleNotFound(id, response))
 				.onStatus(status -> status.is4xxClientError(), response -> handleClientError(id, response))
 				.onStatus(status -> status.is5xxServerError(), response -> handleServerError(id, response))
-				.bodyToMono(PeopleResponse.class)
-				.switchIfEmpty(Mono.defer(() -> {
+				.bodyToMono(TypiCodePeopleClientResponse.class)
+				.switchIfEmpty(Mono.error(() -> {
 					logger.warn("Empty response from external API for people id: {}", id);
-					return Mono.error(new PeopleNotFoundException(id));
+					return new PeopleNotFoundException(id);
 				}))
 				.map(response -> {
 					if (response == null || response.id() == null) {
@@ -57,27 +59,26 @@ public class TypiCodePeopleClientImpl implements PeopleClient {
 						throw new PeopleNotFoundException(id);
 					}
 
-					People people = peopleMapper.toPeople(response);
+					PeopleResponse peopleResponse = typiCodePeopleClientMapper.toPeopleResponse(response);
 
-					if (people == null) {
-						logger.warn("Failed to map response to People entity for id: {}", id);
+					if (peopleResponse == null) {
+						logger.warn("Failed to map response to PeopleResponse for id: {}", id);
 						throw new PeopleNotFoundException(id);
 					}
 
 					logger.info("People fetched successfully from external API", Map.of(
 							"people_id", String.valueOf(id),
-							"people_name", people.getName(),
+							"people_name", peopleResponse.getName(),
 							"request_id", requestId
 					));
-					return people;
+
+					return peopleResponse;
 				})
 				.retryWhen(Retry.backoff(2, Duration.ofMillis(100))
 						.filter(this::isRetryableException)
-						.doBeforeRetry(retrySignal -> {
-							logger.warn("Retrying request - attempt: {}, error: {}",
-									retrySignal.totalRetries() + 1,
-									retrySignal.failure().getMessage());
-						}))
+						.doBeforeRetry(retrySignal -> logger.warn("Retrying request - attempt: {}, error: {}",
+								retrySignal.totalRetries() + 1,
+								retrySignal.failure().getMessage())))
 				.doOnError(error -> {
 					LogContext.setError(error.getClass().getSimpleName());
 					LogContext.setErrorMessage(error.getMessage());
@@ -87,7 +88,7 @@ public class TypiCodePeopleClientImpl implements PeopleClient {
 	}
 
 	@Override
-	public Flux<People> listAll() {
+	public Flux<PeopleResponse> listAll() {
 		String requestId = RequestContext.getRequestId();
 		LogContext.add("operation", "listAll");
 
@@ -99,16 +100,21 @@ public class TypiCodePeopleClientImpl implements PeopleClient {
 				.retrieve()
 				.onStatus(status -> status.is4xxClientError(), this::handleClientErrorList)
 				.onStatus(status -> status.is5xxServerError(), this::handleServerErrorList)
-				.bodyToFlux(PeopleResponse.class)
-				.map(peopleMapper::toPeople)
+				.bodyToFlux(TypiCodePeopleClientResponse.class)
+				.map(response -> {
+					PeopleResponse peopleResponse = typiCodePeopleClientMapper.toPeopleResponse(response);
+					if (peopleResponse == null) {
+						logger.warn("Failed to map response to PeopleResponse");
+						throw new ExternalServiceException("Mapping error", "TypiCode API");
+					}
+					return peopleResponse;
+				})
 				.doOnComplete(() -> logger.info("Successfully fetched all people from external API"))
 				.retryWhen(Retry.backoff(2, Duration.ofMillis(100))
 						.filter(this::isRetryableException)
-						.doBeforeRetry(retrySignal -> {
-							logger.warn("Retrying list request - attempt: {}, error: {}",
-									retrySignal.totalRetries() + 1,
-									retrySignal.failure().getMessage());
-						}))
+						.doBeforeRetry(retrySignal -> logger.warn("Retrying list request - attempt: {}, error: {}",
+								retrySignal.totalRetries() + 1,
+								retrySignal.failure().getMessage())))
 				.doOnError(error -> {
 					LogContext.setError(error.getClass().getSimpleName());
 					LogContext.setErrorMessage(error.getMessage());

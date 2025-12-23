@@ -1,5 +1,6 @@
-package org.people.usecase;
+package org.people.application.usecase;
 
+import org.people.application.dto.PeopleResponse;
 import org.people.domain.entity.People;
 import org.people.domain.repository.PeopleRepository;
 import org.people.infrastructure.logging.LogContext;
@@ -17,7 +18,7 @@ public class GetPeopleUseCaseImpl {
 		this.peopleRepository = peopleRepository;
 	}
 
-	public Mono<People> execute(Integer peopleId) {
+	public Mono<PeopleResponse> execute(Integer peopleId) {
 		String requestId = RequestContext.getRequestId();
 		LogContext.add("people_id", String.valueOf(peopleId));
 		LogContext.add("operation", "get_people");
