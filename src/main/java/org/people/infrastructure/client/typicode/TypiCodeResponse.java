@@ -1,6 +1,6 @@
 package org.people.infrastructure.client.typicode;
 
-public record TypiCodePeopleClientResponse(
+public record TypiCodeResponse(
         Integer id,
         String name,
         String email) {}

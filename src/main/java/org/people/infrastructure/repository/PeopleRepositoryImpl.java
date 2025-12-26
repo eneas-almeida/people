@@ -15,14 +15,22 @@ public class PeopleRepositoryImpl implements PeopleRepository {
 
 	public PeopleRepositoryImpl(Map<DataSource, PeopleClient> clientStrategies,
 								DataSource activeDataSource) {
-		this.clientStrategies = clientStrategies;
+		if (clientStrategies == null || clientStrategies.isEmpty()) {
+			throw new IllegalArgumentException("Client strategies map cannot be null or empty");
+		}
+
+		if (activeDataSource == null) {
+			throw new IllegalArgumentException("Active data source cannot be null");
+		}
+
+		this.clientStrategies = Map.copyOf(clientStrategies);
 		this.activeDataSource = activeDataSource;
 	}
 
 	private PeopleClient getActiveClient() {
 		PeopleClient client = clientStrategies.get(activeDataSource);
 		if (client == null) {
-			throw new IllegalStateException("No client configured for data source: " + activeDataSource);
+			throw new IllegalArgumentException("No client configured for data source: " + activeDataSource);
 		}
 		return client;
 	}

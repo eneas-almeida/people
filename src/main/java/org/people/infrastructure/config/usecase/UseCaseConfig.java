@@ -3,8 +3,8 @@ package org.people.infrastructure.config.usecase;
 import org.people.domain.client.PeopleClient;
 import org.people.domain.enums.DataSource;
 import org.people.domain.repository.PeopleRepository;
-import org.people.infrastructure.client.reqres.ReqResPeopleClientImpl;
-import org.people.infrastructure.client.typicode.TypiCodePeopleClientImpl;
+import org.people.infrastructure.client.dummy.DummyClientImpl;
+import org.people.infrastructure.client.typicode.TypiCodeClientImpl;
 import org.people.infrastructure.repository.PeopleRepositoryImpl;
 import org.people.application.usecase.GetPeopleUseCaseImpl;
 import org.people.application.usecase.ListPeopleUseCaseImpl;
@@ -20,14 +20,14 @@ public class UseCaseConfig {
 
 	@Bean
 	public PeopleRepository peopleRepository(
-			TypiCodePeopleClientImpl typiCodeClient,
-			ReqResPeopleClientImpl reqResClient,
+			TypiCodeClientImpl typiCodeClient,
+			DummyClientImpl dummyClient,
 			@Value("${client.active-datasource:TYPICODE}")
 			String activeDataSourceStr) {
 
 		Map<DataSource, PeopleClient> clientStrategies = new HashMap<>();
 		clientStrategies.put(DataSource.TYPICODE, typiCodeClient);
-		clientStrategies.put(DataSource.REQRES, reqResClient);
+		clientStrategies.put(DataSource.DUMMY, dummyClient);
 
 		DataSource activeDataSource = DataSource.valueOf(activeDataSourceStr.toUpperCase());
 

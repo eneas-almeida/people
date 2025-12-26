@@ -22,16 +22,16 @@ import java.time.Duration;
 import java.util.Map;
 
 @Component
-public class TypiCodePeopleClientImpl implements PeopleClient {
+public class TypiCodeClientImpl implements PeopleClient {
 
-	private static final Logger logger = Logger.getLogger(TypiCodePeopleClientImpl.class);
+	private static final Logger logger = Logger.getLogger(TypiCodeClientImpl.class);
 
     @Autowired
     @Qualifier("typiCodeWebClient")
 	private WebClient typiCodeWebClient;
 
 	@Autowired
-	private TypiCodePeopleClientMapper typiCodePeopleClientMapper;
+	private TypiCodeMapper typiCodeMapper;
 
 	@Override
 	public Mono<PeopleResponse> findById(Integer id) {
@@ -48,7 +48,7 @@ public class TypiCodePeopleClientImpl implements PeopleClient {
 				.onStatus(HttpStatus.NOT_FOUND::equals, response -> handleNotFound(id, response))
 				.onStatus(status -> status.is4xxClientError(), response -> handleClientError(id, response))
 				.onStatus(status -> status.is5xxServerError(), response -> handleServerError(id, response))
-				.bodyToMono(TypiCodePeopleClientResponse.class)
+				.bodyToMono(TypiCodeResponse.class)
 				.switchIfEmpty(Mono.error(() -> {
 					logger.warn("Empty response from external API for people id: {}", id);
 					return new PeopleNotFoundException(id);
@@ -59,7 +59,7 @@ public class TypiCodePeopleClientImpl implements PeopleClient {
 						throw new PeopleNotFoundException(id);
 					}
 
-					PeopleResponse peopleResponse = typiCodePeopleClientMapper.toPeopleResponse(response);
+					PeopleResponse peopleResponse = typiCodeMapper.toPeopleResponse(response);
 
 					if (peopleResponse == null) {
 						logger.warn("Failed to map response to PeopleResponse for id: {}", id);
@@ -100,9 +100,9 @@ public class TypiCodePeopleClientImpl implements PeopleClient {
 				.retrieve()
 				.onStatus(status -> status.is4xxClientError(), this::handleClientErrorList)
 				.onStatus(status -> status.is5xxServerError(), this::handleServerErrorList)
-				.bodyToFlux(TypiCodePeopleClientResponse.class)
+				.bodyToFlux(TypiCodeResponse.class)
 				.map(response -> {
-					PeopleResponse peopleResponse = typiCodePeopleClientMapper.toPeopleResponse(response);
+					PeopleResponse peopleResponse = typiCodeMapper.toPeopleResponse(response);
 					if (peopleResponse == null) {
 						logger.warn("Failed to map response to PeopleResponse");
 						throw new ExternalServiceException("Mapping error", "TypiCode API");

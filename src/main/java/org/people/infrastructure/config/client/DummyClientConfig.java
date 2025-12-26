@@ -14,15 +14,15 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Configuration
-public class TypiCodePeopleClientConfig {
-	private static final Logger logger = Logger.getLogger(TypiCodePeopleClientConfig.class);
+public class DummyClientConfig {
+	private static final Logger logger = Logger.getLogger(DummyClientConfig.class);
 	private static final String REQUEST_ID_HEADER = "X-Request-ID";
 	private static final String CORRELATION_ID_HEADER = "X-Correlation-ID";
 
 	@Bean
-	@Qualifier("typiCodeWebClient")
-	public WebClient typiCodeWebClient(WebClient.Builder builder,
-								@Value("${client.typicode.base-url}") String baseUrl) {
+	@Qualifier("dummyWebClient")
+	public WebClient dummyWebClient(WebClient.Builder builder,
+							  @Value("${client.dummy.base-url}") String baseUrl) {
 		ExchangeStrategies strategies = ExchangeStrategies.builder()
 				.codecs(c -> c.defaultCodecs()
 						.maxInMemorySize(5242880))

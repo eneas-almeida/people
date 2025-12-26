@@ -6,12 +6,12 @@ import org.mapstruct.Mapper;
 
 @Mapper(
 	componentModel = "spring",
-	implementationName = "TypiCodePeopleClientMapperImpl"
+	implementationName = "TypiCodeMapperImpl"
 )
-public interface TypiCodePeopleClientMapper {
+public interface TypiCodeMapper {
 
 	@Mapping(target = "id", source = "id")
 	@Mapping(target = "name", source = "name")
 	@Mapping(target = "email", source = "email")
-	PeopleResponse toPeopleResponse(TypiCodePeopleClientResponse response);
+	PeopleResponse toPeopleResponse(TypiCodeResponse response);
 }
