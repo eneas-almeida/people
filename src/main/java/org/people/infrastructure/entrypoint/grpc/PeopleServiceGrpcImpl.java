@@ -7,20 +7,18 @@ import com.people.grpc.ServiceProto.PeopleRequestGrpc;
 import com.people.grpc.ServiceProto.PeopleResponseGrpc;
 import lombok.RequiredArgsConstructor;
 import net.devh.boot.grpc.server.service.GrpcService;
-import org.people.application.usecase.GetPeopleUseCaseImpl;
-import org.people.application.usecase.ListPeopleUseCaseImpl;
+import org.people.application.service.PeopleService;
 import reactor.core.publisher.Mono;
 
 @GrpcService
 @RequiredArgsConstructor
-public class PeopleGrpcServiceImpl extends ReactorPeopleServiceGrpc.PeopleServiceImplBase {
-	private final GetPeopleUseCaseImpl getPeopleUseCase;
-	private final ListPeopleUseCaseImpl listPeopleUseCase;
+public class PeopleServiceGrpcImpl extends ReactorPeopleServiceGrpc.PeopleServiceImplBase {
+	private final PeopleService peopleService;
 
 	@Override
 	public Mono<PeopleResponseGrpc> getPeople(Mono<PeopleRequestGrpc> request) {
 		return request
-				.flatMap(req -> getPeopleUseCase.execute(req.getId()))
+				.flatMap(req -> peopleService.getById(req.getId()))
 				.map(people -> PeopleResponseGrpc.newBuilder()
 						.setId(people.getId())
 						.setName(people.getName())
@@ -31,7 +29,7 @@ public class PeopleGrpcServiceImpl extends ReactorPeopleServiceGrpc.PeopleServic
 	@Override
 	public Mono<ListPeopleResponseGrpc> listPeople(Mono<ListPeopleRequestGrpc> request) {
 		return request
-				.flatMapMany(req -> listPeopleUseCase.execute())
+				.flatMapMany(req -> peopleService.listAll())
 				.map(people -> PeopleResponseGrpc.newBuilder()
 						.setId(people.getId())
 						.setName(people.getName())
