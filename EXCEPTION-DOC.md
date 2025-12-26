@@ -303,3 +303,9 @@ Todas as exceptions são logadas com contexto completo e aparecem no Datadog com
 - Metadados adicionais (service name, HTTP status, etc.)
 
 Isso permite rastrear e correlacionar erros facilmente no Datadog APM.
+
+<hr />
+
+<div>
+  <sub>Conteúdo criado por <a href="https://github.com/eneas-almeida">Enéas Almeida</a></sub>
+</div>

@@ -502,6 +502,8 @@ docker run -p 9090:9090 people-service:latest
 
 Este projeto é um exemplo educacional e está disponível para uso livre.
 
----
+<hr />
 
-**Desenvolvido com Java 21 + Spring Boot + gRPC + WebFlux + MapStruct + Lombok**
+<div>
+  <sub>Conteúdo criado por <a href="https://github.com/eneas-almeida">Enéas Almeida</a></sub>
+</div>

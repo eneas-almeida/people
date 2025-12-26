@@ -232,3 +232,9 @@ Não é necessário configurar manualmente, o interceptor é registrado automati
 3. **Incluir contexto relevante**: Adicione IDs, operações, e metadados que ajudem na investigação
 4. **Não logar informações sensíveis**: Evite logar senhas, tokens, PII sem necessidade
 5. **Usar parâmetros em vez de concatenação**: Use `logger.info("User {}", userId)` em vez de `logger.info("User " + userId)`
+
+<hr />
+
+<div>
+  <sub>Conteúdo criado por <a href="https://github.com/eneas-almeida">Enéas Almeida</a></sub>
+</div>

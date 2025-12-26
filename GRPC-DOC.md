@@ -1035,8 +1035,8 @@ grpc:
 grpcurl -plaintext localhost:9090 grpc.health.v1.Health/Check
 ```
 
----
+<hr />
 
-**Criado por:** People Service Team
-**Última atualização:** Dezembro 2024
-**Versão do gRPC:** 1.59.0
+<div>
+  <sub>Conteúdo criado por <a href="https://github.com/eneas-almeida">Enéas Almeida</a></sub>
+</div>
