@@ -1,5 +1,6 @@
 package org.people.infrastructure.client.typicode;
 
+import lombok.RequiredArgsConstructor;
 import org.people.application.dto.PeopleResponse;
 import org.people.domain.client.PeopleClient;
 import org.people.domain.exception.PeopleNotFoundException;
@@ -7,8 +8,6 @@ import org.people.infrastructure.exception.ExternalServiceException;
 import org.people.infrastructure.logging.LogContext;
 import org.people.infrastructure.logging.Logger;
 import org.people.infrastructure.logging.RequestContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -22,15 +21,13 @@ import java.time.Duration;
 import java.util.Map;
 
 @Component
+@RequiredArgsConstructor
 public class TypiCodeClientImpl implements PeopleClient {
 
 	private static final Logger logger = Logger.getLogger(TypiCodeClientImpl.class);
 
-    @Autowired
-	private WebClient typiCodeWebClient;
-
-	@Autowired
-	private TypiCodeMapper typiCodeMapper;
+	private final WebClient typiCodeWebClient;
+	private final TypiCodeMapper typiCodeMapper;
 
 	@Override
 	public Mono<PeopleResponse> findById(Integer id) {

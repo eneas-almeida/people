@@ -1,10 +1,9 @@
 package org.people.infrastructure.client.dummy;
 
+import lombok.RequiredArgsConstructor;
 import org.people.application.dto.PeopleResponse;
 import org.people.domain.client.PeopleClient;
 import org.people.infrastructure.exception.ExternalServiceException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -13,13 +12,11 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class DummyClientImpl implements PeopleClient {
 
-	@Autowired
-	private WebClient dummyWebClient;
-
-	@Autowired
-	private DummyMapper dummyMapper;
+	private final WebClient dummyWebClient;
+	private final DummyMapper dummyMapper;
 
 	@Override
 	public Mono<PeopleResponse> findById(Integer id) {
