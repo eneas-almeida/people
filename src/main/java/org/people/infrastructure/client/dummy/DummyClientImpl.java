@@ -16,7 +16,6 @@ import java.util.List;
 public class DummyClientImpl implements PeopleClient {
 
 	@Autowired
-	@Qualifier("dummyWebClient")
 	private WebClient dummyWebClient;
 
 	@Autowired

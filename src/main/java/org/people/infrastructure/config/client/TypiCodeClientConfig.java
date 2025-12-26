@@ -20,7 +20,6 @@ public class TypiCodeClientConfig {
 	private static final String CORRELATION_ID_HEADER = "X-Correlation-ID";
 
 	@Bean
-	@Qualifier("typiCodeWebClient")
 	public WebClient typiCodeWebClient(WebClient.Builder builder,
 								@Value("${client.typicode.base-url}") String baseUrl) {
 		ExchangeStrategies strategies = ExchangeStrategies.builder()

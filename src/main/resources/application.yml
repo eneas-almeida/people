@@ -9,7 +9,7 @@ grpc:
     port: 9090
 
 client:
-  active-datasource: DUMMY  # Options: TYPICODE, DUMMY
+  active-datasource: TYPICODE  # Options: TYPICODE, DUMMY
   typicode:
     base-url: https://jsonplaceholder.typicode.com
   dummy:

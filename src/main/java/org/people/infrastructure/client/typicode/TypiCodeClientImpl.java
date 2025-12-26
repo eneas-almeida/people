@@ -27,7 +27,6 @@ public class TypiCodeClientImpl implements PeopleClient {
 	private static final Logger logger = Logger.getLogger(TypiCodeClientImpl.class);
 
     @Autowired
-    @Qualifier("typiCodeWebClient")
 	private WebClient typiCodeWebClient;
 
 	@Autowired
