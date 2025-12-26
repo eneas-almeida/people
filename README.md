@@ -37,13 +37,13 @@ O projeto segue os princípios da **Clean Architecture**, organizando o código 
 ```
 ┌─────────────────────────────────────────┐
 │      Entrypoint (gRPC Service)          │
-│   - PeopleGrpcServiceImpl               │
+│   - PeopleServiceGrpcImpl               │
 └─────────────┬───────────────────────────┘
               │
 ┌─────────────▼───────────────────────────┐
 │       Application Layer                 │
-│   - GetPeopleUseCaseImpl                │
-│   - ListPeopleUseCaseImpl               │
+│   - PeopleService (interface)           │
+│   - PeopleServiceImpl                   │
 └─────────────┬───────────────────────────┘
               │
 ┌─────────────▼───────────────────────────┐
@@ -64,6 +64,7 @@ O projeto segue os princípios da **Clean Architecture**, organizando o código 
 │   - TypiCodeClientImpl                  │
 │                                         │
 │   Configs:                              │
+│   - RepositoryConfig                    │
 │   - DummyClientConfig                   │
 │   - TypiCodeClientConfig                │
 └─────────────────────────────────────────┘
@@ -81,7 +82,7 @@ O projeto segue os princípios da **Clean Architecture**, organizando o código 
 2. **Application** (`org.people.application`)
    - Implementa a lógica de negócio da aplicação
    - DTOs de aplicação (`PeopleResponse`)
-   - Use Cases (`GetPeopleUseCaseImpl`, `ListPeopleUseCaseImpl`)
+   - Services (`PeopleService`, `PeopleServiceImpl`)
    - Orquestra as interações entre domain e infrastructure
 
 3. **Infrastructure** (`org.people.infrastructure`)
@@ -145,9 +146,9 @@ people/
 │   │   │   ├── application/
 │   │   │   │   ├── dto/
 │   │   │   │   │   └── PeopleResponse.java         # DTO de resposta
-│   │   │   │   └── usecase/
-│   │   │   │       ├── GetPeopleUseCaseImpl.java
-│   │   │   │       └── ListPeopleUseCaseImpl.java
+│   │   │   │   └── service/
+│   │   │   │       ├── PeopleService.java          # Interface do serviço
+│   │   │   │       └── PeopleServiceImpl.java      # Implementação do serviço
 │   │   │   │
 │   │   │   └── infrastructure/
 │   │   │       ├── client/
@@ -168,11 +169,10 @@ people/
 │   │   │       │   ├── client/
 │   │   │       │   │   ├── DummyClientConfig.java
 │   │   │       │   │   └── TypiCodeClientConfig.java
-│   │   │       │   └── usecase/
-│   │   │       │       └── UseCaseConfig.java
+│   │   │       │   └── RepositoryConfig.java       # Config do repository
 │   │   │       │
 │   │   │       ├── entrypoint/grpc/
-│   │   │       │   └── PeopleGrpcServiceImpl.java
+│   │   │       │   └── PeopleServiceGrpcImpl.java
 │   │   │       │
 │   │   │       ├── exception/
 │   │   │       │   ├── GlobalGrpcExceptionHandler.java
@@ -234,7 +234,7 @@ grpc:
     port: 9090
 
 client:
-  active-datasource: DUMMY  # Options: TYPICODE, DUMMY
+  active-datasource: TYPICODE  # Options: TYPICODE, DUMMY
   typicode:
     base-url: https://jsonplaceholder.typicode.com
   dummy:
@@ -266,18 +266,6 @@ Ou defina via variável de ambiente:
 
 ```bash
 export ACTIVE_DATASOURCE=DUMMY
-```
-
-### Customização de URLs
-
-Para alterar as URLs base das APIs externas:
-
-```yaml
-client:
-  typicode:
-    base-url: https://sua-api-typicode.exemplo.com
-  dummy:
-    base-url: https://sua-api-dummy.exemplo.com
 ```
 
 ## 🏃 Como Executar
@@ -322,15 +310,6 @@ mvn clean package
 java -jar target/people-0.0.1-SNAPSHOT.jar
 ```
 
-### Executar com Configuração Customizada
-
-```bash
-java -jar \
-  -Dclient.active-datasource=DUMMY \
-  -Dlogging.level.org.people=DEBUG \
-  target/people-0.0.1-SNAPSHOT.jar
-```
-
 ### Verificar Execução
 
 Após iniciar a aplicação, você verá logs indicando que o servidor gRPC está rodando:
@@ -341,76 +320,17 @@ gRPC Server started, listening on address: *, port: 9090
 
 ## 🔌 API gRPC
 
-### Definição do Serviço (Protocol Buffers)
-
-O serviço gRPC está definido em `src/main/proto/person.proto`:
-
-```protobuf
-syntax = "proto3";
-
-option java_package = "com.people.grpc";
-option java_outer_classname = "ServiceProto";
-
-package grpcservice;
-
-service PeopleService {
-  rpc GetPeople (PeopleRequestGrpc) returns (PeopleResponseGrpc);
-  rpc ListPeople (ListPeopleRequestGrpc) returns (ListPeopleResponseGrpc);
-}
-
-message PeopleRequestGrpc {
-  int32 id = 1;
-}
-
-message ListPeopleRequestGrpc {}
-
-message PeopleResponseGrpc {
-  int32 id = 1;
-  string name = 2;
-  string email = 3;
-}
-
-message ListPeopleResponseGrpc {
-  repeated PeopleResponseGrpc people = 1;
-}
-```
-
 ### Endpoints Disponíveis
 
 #### 1. GetPeople
 Busca uma pessoa específica por ID.
-
-**Request:**
-```protobuf
-message PeopleRequestGrpc {
-  int32 id = 1;
-}
-```
-
-**Response:**
-```protobuf
-message PeopleResponseGrpc {
-  int32 id = 1;
-  string name = 2;
-  string email = 3;
-}
-```
 
 **Exemplo de Uso com grpcurl:**
 ```bash
 grpcurl -plaintext -d '{"id": 1}' localhost:9090 grpcservice.PeopleService/GetPeople
 ```
 
-**Resposta Esperada (DummyJSON):**
-```json
-{
-  "id": 1,
-  "name": "Emily Johnson",
-  "email": "emily.johnson@x.dummyjson.com"
-}
-```
-
-**Resposta Esperada (JSONPlaceholder):**
+**Resposta Esperada:**
 ```json
 {
   "id": 1,
@@ -422,18 +342,6 @@ grpcurl -plaintext -d '{"id": 1}' localhost:9090 grpcservice.PeopleService/GetPe
 #### 2. ListPeople
 Lista todas as pessoas disponíveis.
 
-**Request:**
-```protobuf
-message ListPeopleRequestGrpc {}
-```
-
-**Response:**
-```protobuf
-message ListPeopleResponseGrpc {
-  repeated PeopleResponseGrpc people = 1;
-}
-```
-
 **Exemplo de Uso com grpcurl:**
 ```bash
 grpcurl -plaintext localhost:9090 grpcservice.PeopleService/ListPeople
@@ -441,129 +349,65 @@ grpcurl -plaintext localhost:9090 grpcservice.PeopleService/ListPeople
 
 ### Testando com grpcurl
 
-Para testar os endpoints, você pode usar a ferramenta [grpcurl](https://github.com/fullstorydev/grpcurl):
-
 ```bash
-# Instalar grpcurl (exemplo para Linux/Mac)
-go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
-
 # Listar serviços disponíveis
 grpcurl -plaintext localhost:9090 list
 
 # Descrever um serviço
 grpcurl -plaintext localhost:9090 describe grpcservice.PeopleService
-
-# Listar métodos do serviço
-grpcurl -plaintext localhost:9090 list grpcservice.PeopleService
 ```
-
-### Tratamento de Erros
-
-O serviço retorna status codes gRPC padrão:
-
-- **OK (0)**: Operação bem-sucedida
-- **NOT_FOUND (5)**: Pessoa não encontrada
-- **INVALID_ARGUMENT (3)**: Argumentos inválidos (validação)
-- **FAILED_PRECONDITION (9)**: Violação de regra de negócio
-- **UNAVAILABLE (14)**: Serviço externo indisponível
-- **INTERNAL (13)**: Erro interno não esperado
 
 ## 🌐 APIs Externas Suportadas
 
 ### DummyJSON (Fonte: DUMMY)
-
-**URL Base:** `https://dummyjson.com`
-
-**Endpoints utilizados:**
-- `GET /users/{id}` - Buscar usuário por ID
-- `GET /users` - Listar todos os usuários
-
-**Estrutura de resposta:**
-```json
-{
-  "id": 1,
-  "firstName": "Emily",
-  "lastName": "Johnson",
-  "email": "emily.johnson@x.dummyjson.com"
-}
-```
-
-**Características:**
-- API gratuita com dados realistas
-- Maior quantidade de usuários disponíveis (~200)
-- Campos separados (firstName, lastName) - combinados pelo mapper
-
-**Documentação:** https://dummyjson.com/docs/users
+- **URL Base:** `https://dummyjson.com`
+- **Usuários disponíveis:** ~200
+- **Documentação:** https://dummyjson.com/docs/users
 
 ### JSONPlaceholder (Fonte: TYPICODE)
-
-**URL Base:** `https://jsonplaceholder.typicode.com`
-
-**Endpoints utilizados:**
-- `GET /users/{id}` - Buscar usuário por ID
-- `GET /users` - Listar todos os usuários
-
-**Estrutura de resposta:**
-```json
-{
-  "id": 1,
-  "name": "Leanne Graham",
-  "email": "Sincere@april.biz",
-  "username": "Bret",
-  "address": {...},
-  "phone": "1-770-736-8031 x56442",
-  "website": "hildegard.org",
-  "company": {...}
-}
-```
-
-**Características:**
-- API gratuita e pública para testes
-- 10 usuários disponíveis
-- Campo name já unificado
-- Dados adicionais (endereço, telefone, etc.)
-
-**Documentação:** https://jsonplaceholder.typicode.com/guide/
-
-### Trocar de API
-
-Altere no `application.yml`:
-
-```yaml
-client:
-  active-datasource: DUMMY  # ou TYPICODE
-```
-
-Ou via variável de ambiente:
-
-```bash
-export ACTIVE_DATASOURCE=TYPICODE
-java -jar target/people-0.0.1-SNAPSHOT.jar
-```
+- **URL Base:** `https://jsonplaceholder.typicode.com`
+- **Usuários disponíveis:** 10
+- **Documentação:** https://jsonplaceholder.typicode.com/guide/
 
 ## 🔧 Detalhes Técnicos
+
+### Padrão Service
+
+O projeto utiliza **PeopleService** como camada de aplicação:
+
+```java
+@Service
+@RequiredArgsConstructor
+public class PeopleServiceImpl implements PeopleService {
+
+    private final PeopleRepository peopleRepository;
+
+    @Override
+    public Mono<PeopleResponse> getById(Integer id) {
+        return peopleRepository.findById(id);
+    }
+
+    @Override
+    public Flux<PeopleResponse> listAll() {
+        return peopleRepository.findAll();
+    }
+}
+```
 
 ### Padrão Strategy
 
 O projeto utiliza o **padrão Strategy** via `PeopleRepositoryImpl` para permitir troca dinâmica entre diferentes APIs externas:
 
 ```java
-@Component
+@RequiredArgsConstructor
 public class PeopleRepositoryImpl implements PeopleRepository {
 
     private final Map<DataSource, PeopleClient> clientStrategies;
     private final DataSource activeDataSource;
 
-    public PeopleRepositoryImpl(
-            Map<DataSource, PeopleClient> clientStrategies,
-            DataSource activeDataSource) {
-        this.clientStrategies = clientStrategies;
-        this.activeDataSource = activeDataSource;
-    }
-
     @Override
     public Mono<PeopleResponse> findById(Integer id) {
-        return getActiveClient().findById(id);
+        return getActiveClient().getPeopleById(id);
     }
 
     private PeopleClient getActiveClient() {
@@ -572,94 +416,32 @@ public class PeopleRepositoryImpl implements PeopleRepository {
 }
 ```
 
-**Benefícios:**
-- Fácil adição de novas APIs
-- Troca de fonte de dados sem alterar código
-- Testabilidade aumentada
-- Baixo acoplamento
+### Inversão de Dependência
 
-### Programação Reativa
-
-O projeto utiliza **Project Reactor** para operações assíncronas e não-bloqueantes:
+O gRPC Service injeta a interface do serviço:
 
 ```java
-// Exemplo de uso de Mono
-public Mono<PeopleResponse> findById(Integer id) {
-    return webClient
-        .get()
-        .uri("/users/{id}", id)
-        .retrieve()
-        .bodyToMono(DummyResponse.class)
-        .map(response -> mapper.toPeopleResponse(response));
-}
+@GrpcService
+@RequiredArgsConstructor
+public class PeopleServiceGrpcImpl extends ReactorPeopleServiceGrpc.PeopleServiceImplBase {
 
-// Exemplo de uso de Flux
-public Flux<PeopleResponse> listAll() {
-    return webClient
-        .get()
-        .uri("/users")
-        .retrieve()
-        .bodyToMono(DummyListResponse.class)
-        .flatMapMany(response -> Flux.fromIterable(response.users()))
-        .map(user -> mapper.toPeopleResponse(user));
+    private final PeopleService peopleService;  // Interface!
+
+    @Override
+    public Mono<PeopleResponseGrpc> getPeople(Mono<PeopleRequestGrpc> request) {
+        return request.flatMap(req -> peopleService.getById(req.getId()))
+            .map(people -> PeopleResponseGrpc.newBuilder()
+                .setId(people.getId())
+                .setName(people.getName())
+                .setEmail(people.getEmail())
+                .build());
+    }
 }
 ```
-
-**Vantagens:**
-- Maior eficiência no uso de recursos
-- Melhor escalabilidade
-- Não bloqueia threads durante operações I/O
-- Suporte a backpressure
-
-### Logging Estruturado
-
-O serviço implementa logging estruturado com:
-
-**Logger customizado:**
-```java
-private static final Logger logger = Logger.getLogger(TypiCodeClientImpl.class);
-
-logger.info("Fetching people by id from external API - id: {}, requestId: {}",
-    id, requestId);
-```
-
-**Contexto de log:**
-```java
-LogContext.add("people_id", String.valueOf(id));
-LogContext.add("operation", "findById");
-```
-
-**Interceptor gRPC:**
-- Adiciona correlation IDs automaticamente
-- Registra duração de requisições
-- Captura erros e status codes
-
-**Formato de saída:**
-- JSON estruturado via Logstash Logback Encoder
-- Compatível com ELK Stack, Datadog, etc.
-- Request IDs para rastreabilidade
-
-### Retry e Resiliência
-
-O cliente TypiCode implementa retry com backoff exponencial:
-
-```java
-.retryWhen(Retry.backoff(2, Duration.ofMillis(100))
-    .filter(this::isRetryableException)
-    .doBeforeRetry(retrySignal ->
-        logger.warn("Retrying request - attempt: {}",
-            retrySignal.totalRetries() + 1)))
-```
-
-**Política de retry:**
-- Apenas para erros 5xx (servidor)
-- Não faz retry para 404 (not found)
-- Backoff exponencial: 100ms, 200ms
-- Máximo de 2 tentativas
 
 ### MapStruct
 
-O MapStruct é utilizado para conversão type-safe entre DTOs e entidades:
+O MapStruct é utilizado para conversão type-safe:
 
 ```java
 @Mapper(
@@ -670,110 +452,41 @@ public interface DummyMapper {
 
     @Mapping(target = "name",
         expression = "java(response.firstName() + \" \" + response.lastName())")
-    @Mapping(target = "email", source = "email")
-    @Mapping(target = "id", source = "id")
     PeopleResponse toPeopleResponse(DummyResponse response);
 }
 ```
 
-**Benefícios:**
-- Geração de código em tempo de compilação
-- Type-safe
-- Alto desempenho (sem reflexão)
-- Mapeamentos customizados via expressions
+### Lombok
 
-### Hierarquia de Exceções
-
-```
-PeopleException (Domain - Base)
-├── BusinessRuleException
-├── ValidationException
-└── PeopleNotFoundException
-
-Infrastructure Exceptions
-├── ExternalServiceException
-└── InternalServerException
-```
-
-**GlobalGrpcExceptionHandler:**
-- Intercepta exceções dos serviços gRPC
-- Converte para status codes apropriados
-- Adiciona mensagens de erro estruturadas
-- Registra erros no sistema de logging
-
-### WebClient Configuração
-
-Cada API externa possui sua própria configuração de WebClient:
+Construtores são gerados automaticamente via Lombok:
 
 ```java
-@Configuration
-public class DummyClientConfig {
-
-    @Bean
-    @Qualifier("dummyWebClient")
-    public WebClient dummyWebClient(
-            WebClient.Builder builder,
-            @Value("${client.dummy.base-url}") String baseUrl) {
-
-        ExchangeStrategies strategies = ExchangeStrategies.builder()
-            .codecs(c -> c.defaultCodecs()
-                .maxInMemorySize(5242880))
-            .build();
-
-        return builder
-            .baseUrl(baseUrl)
-            .exchangeStrategies(strategies)
-            .filter(addRequestIdHeader())
-            .filter(logRequest())
-            .filter(logResponse())
-            .build();
-    }
+@Service
+@RequiredArgsConstructor  // Gera construtor com campos final
+public class PeopleServiceImpl implements PeopleService {
+    private final PeopleRepository peopleRepository;
 }
 ```
-
-**Características:**
-- Non-blocking I/O
-- Filtros customizados (headers, logging)
-- Estratégias de codec configuráveis
-- Buffer size configurável
 
 ## 📦 Build e Deploy
 
 ### Gerar Artefato de Produção
 
 ```bash
-# Compilar sem executar testes
 mvn clean package -DskipTests
-
-# Compilar com testes
-mvn clean package
 ```
 
-O JAR executável será gerado em: `target/people-0.0.1-SNAPSHOT.jar`
-
-### Executar em Produção
-
-```bash
-java -jar \
-  -Dspring.profiles.active=prod \
-  -Dclient.active-datasource=DUMMY \
-  -Dlogging.level.org.people=INFO \
-  target/people-0.0.1-SNAPSHOT.jar
-```
-
-### Docker (Exemplo de Dockerfile)
+### Docker (Exemplo)
 
 ```dockerfile
 FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
-
 COPY target/people-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 9090
 
-# Variáveis de ambiente
-ENV ACTIVE_DATASOURCE=DUMMY
+ENV ACTIVE_DATASOURCE=TYPICODE
 ENV SPRING_PROFILE=prod
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
@@ -781,91 +494,14 @@ ENTRYPOINT ["java", "-jar", "app.jar"]
 
 **Build e Run:**
 ```bash
-# Build da imagem
 docker build -t people-service:latest .
-
-# Executar container
-docker run -p 9090:9090 \
-  -e ACTIVE_DATASOURCE=TYPICODE \
-  people-service:latest
+docker run -p 9090:9090 people-service:latest
 ```
-
-### Docker Compose (Exemplo)
-
-```yaml
-version: '3.8'
-
-services:
-  people-service:
-    build: .
-    ports:
-      - "9090:9090"
-    environment:
-      - ACTIVE_DATASOURCE=DUMMY
-      - SPRING_PROFILE=prod
-      - LOGGING_LEVEL_ORG_PEOPLE=INFO
-    healthcheck:
-      test: ["CMD", "grpcurl", "-plaintext", "localhost:9090", "list"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-```
-
-## 🧪 Testes
-
-### Executar Todos os Testes
-
-```bash
-# Com Maven Wrapper
-./mvnw test
-
-# Com Maven local
-mvn test
-```
-
-### Executar Testes com Cobertura
-
-```bash
-mvn clean test jacoco:report
-```
-
-O relatório de cobertura estará disponível em: `target/site/jacoco/index.html`
-
-## 🤝 Contribuindo
-
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/MinhaFeature`)
-3. Commit suas mudanças (`git commit -m 'Adiciona MinhaFeature'`)
-4. Push para a branch (`git push origin feature/MinhaFeature`)
-5. Abra um Pull Request
-
-### Padrões de Código
-
-- Seguir convenções Java padrão
-- Manter Clean Architecture
-- Adicionar testes para novas funcionalidades
-- Documentar código complexo
-- Usar logging estruturado
-
-### Adicionando Nova API Externa
-
-Para adicionar uma nova fonte de dados:
-
-1. Criar novo valor no enum `DataSource`
-2. Criar implementação de `PeopleClient` no pacote adequado
-3. Criar mapper MapStruct para conversão de DTOs
-4. Criar configuração de WebClient
-5. Registrar no `UseCaseConfig`
-6. Adicionar configurações no `application.yml`
 
 ## 📝 Licença
 
 Este projeto é um exemplo educacional e está disponível para uso livre.
 
-## 📧 Contato
-
-Para dúvidas ou sugestões, abra uma issue no repositório.
-
 ---
 
-**Desenvolvido com Java 21 + Spring Boot + gRPC + WebFlux**
+**Desenvolvido com Java 21 + Spring Boot + gRPC + WebFlux + MapStruct + Lombok**
