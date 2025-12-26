@@ -1,7 +1,7 @@
 package org.people.application.usecase;
 
+import lombok.RequiredArgsConstructor;
 import org.people.application.dto.PeopleResponse;
-import org.people.domain.entity.People;
 import org.people.domain.repository.PeopleRepository;
 import org.people.infrastructure.logging.LogContext;
 import org.people.infrastructure.logging.Logger;
@@ -10,13 +10,10 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
+@RequiredArgsConstructor
 public class GetPeopleUseCaseImpl {
 	private static final Logger logger = Logger.getLogger(GetPeopleUseCaseImpl.class);
 	private final PeopleRepository peopleRepository;
-
-	public GetPeopleUseCaseImpl(PeopleRepository peopleRepository) {
-		this.peopleRepository = peopleRepository;
-	}
 
 	public Mono<PeopleResponse> execute(Integer peopleId) {
 		String requestId = RequestContext.getRequestId();

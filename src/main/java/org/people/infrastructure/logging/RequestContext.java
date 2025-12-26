@@ -1,19 +1,19 @@
 package org.people.infrastructure.logging;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import reactor.core.publisher.Mono;
 import reactor.util.context.Context;
 
 import java.util.Optional;
 import java.util.UUID;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RequestContext {
 
     private static final String REQUEST_ID_KEY = "request_id";
     private static final String CORRELATION_ID_KEY = "correlation_id";
     private static final ThreadLocal<String> requestIdHolder = new ThreadLocal<>();
-
-    private RequestContext() {
-    }
 
     public static String generateRequestId() {
         String requestId = UUID.randomUUID().toString();

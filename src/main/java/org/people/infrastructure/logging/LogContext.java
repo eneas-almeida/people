@@ -1,16 +1,16 @@
 package org.people.infrastructure.logging;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.slf4j.MDC;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class LogContext {
 
     private static final ThreadLocal<Map<String, String>> contextHolder = ThreadLocal.withInitial(HashMap::new);
-
-    private LogContext() {
-    }
 
     public static void add(String key, String value) {
         if (key != null && value != null) {

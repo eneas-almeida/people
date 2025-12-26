@@ -5,20 +5,17 @@ import com.people.grpc.ServiceProto.ListPeopleRequestGrpc;
 import com.people.grpc.ServiceProto.ListPeopleResponseGrpc;
 import com.people.grpc.ServiceProto.PeopleRequestGrpc;
 import com.people.grpc.ServiceProto.PeopleResponseGrpc;
+import lombok.RequiredArgsConstructor;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.people.application.usecase.GetPeopleUseCaseImpl;
 import org.people.application.usecase.ListPeopleUseCaseImpl;
 import reactor.core.publisher.Mono;
 
 @GrpcService
+@RequiredArgsConstructor
 public class PeopleGrpcServiceImpl extends ReactorPeopleServiceGrpc.PeopleServiceImplBase {
 	private final GetPeopleUseCaseImpl getPeopleUseCase;
 	private final ListPeopleUseCaseImpl listPeopleUseCase;
-
-	public PeopleGrpcServiceImpl(GetPeopleUseCaseImpl getPeopleUseCase, ListPeopleUseCaseImpl listPeopleUseCase) {
-		this.getPeopleUseCase = getPeopleUseCase;
-		this.listPeopleUseCase = listPeopleUseCase;
-	}
 
 	@Override
 	public Mono<PeopleResponseGrpc> getPeople(Mono<PeopleRequestGrpc> request) {
